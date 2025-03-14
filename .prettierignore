@@ -1,0 +1,3 @@
+# Ignore everything except .js and .vue files in src folder
+!/**/*.vue
+!/**/*.js
