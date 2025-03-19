@@ -26,17 +26,23 @@
 import type { TPerson } from '~/utils/types/person'
 import type { IFetchResult } from '~/utils/interfaces/general'
 
+const sessionStoragePageEntry = 'etradingPage'
+
 // show modal indicator
 const showDetails = shallowRef()
-
-// search params
-const search = shallowRef('')
 
 // the default endpoint URL
 const initUrl = 'https://swapi.dev/api/people'
 
 // the current requested page. It is being changed by the paginator
-const page = shallowRef(initUrl)
+const page = shallowRef(sessionStorage.getItem(sessionStoragePageEntry) ?? initUrl)
+
+const searchParamInRequestUrl = computed((): string | null => {
+  return new URL(page.value)?.searchParams?.get('search')
+})
+
+// search params
+const search = shallowRef(searchParamInRequestUrl.value ?? '')
 
 // first page indicator. If the search value changed, we set it to true, and set the page url to default
 const isFirstPage = shallowRef(true)
@@ -51,11 +57,13 @@ const { data, status } = useLazyAsyncData(
     try {
       // if the search param is not empty, and the first page indicator is true, we send a request with the search query
       // otherwise, we use the next/previous url (we got it in the response)
-      const requestedPage = !!search.value?.length && isFirstPage.value ? `${initUrl}/?search=${search.value}` : page.value
+      const requestedPage = !!search.value?.length && isFirstPage.value && !searchParamInRequestUrl.value ? `${initUrl}/?search=${search.value}` : page.value
       const response: IFetchResult<Array<TPerson>> = await $fetch(requestedPage)
 
       // if we got the response, we set the first page indicator to false
       isFirstPage.value = false
+
+      sessionStorage.setItem(sessionStoragePageEntry, requestedPage)
 
       return response
     } catch (error) {
@@ -68,6 +76,6 @@ const { data, status } = useLazyAsyncData(
     }
   },
   // we are watching the search and page values, if one of those are changed, send a new request
-  { server: false, watch: [search, page], deep: false },
+  { watch: [search, page], deep: false },
 )
 </script>

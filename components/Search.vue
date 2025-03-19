@@ -8,7 +8,7 @@
 <script setup lang="ts">
 const text = defineModel<string>({ required: false })
 
-// we dont want to send a request everytime when the input value changes, so we handle it with manually
+// we dont want to send a request everytime when the input value changes, so we handle it manually
 // otherwise we could use the v-model directive on the input, but we have to implement a debounce logic (this will be the better solution)
 const onChange = ($event: Event) => {
   text.value = ($event.target as HTMLInputElement).value
